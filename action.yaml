@@ -1,0 +1,97 @@
+name: Setup CODESYS 4
+author: Krystian Poyma
+description: Install CODESYS 4 on a Debian-based runner
+
+branding:
+  icon: "package"
+  color: "red"
+
+inputs:
+  version:
+    description: CODESYS 4 version to install
+    default: "1.0.0.0"
+  deb-url:
+    description: Override the download URL (optional)
+    default: ""
+  sha256:
+    description: Expected SHA-256 (optional, overrides the built-in value)
+    default: ""
+
+outputs:
+  version:
+    description: Installed CODESYS 4 version
+    value: ${{ steps.ver.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check runner OS
+      if: runner.os != 'Linux'
+      shell: bash
+      run: | # bash
+        echo "::error::This action is only supported on Linux runners."
+        exit 1
+
+    - name: Check runner architecture
+      if: runner.arch != 'X64'
+      shell: bash
+      run: | # bash
+        echo "::error::This action is only supported on X64 (amd64) runners."
+        exit 1
+
+    - name: Check package manager
+      shell: bash
+      run: | # bash
+        command -v apt-get >/dev/null && command -v dpkg >/dev/null || {
+          echo "::error::apt-get/dpkg not found (Debian-based Linux required)."
+          exit 1
+        }
+
+    - name: Restore .deb cache
+      if: inputs.cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/codesys4
+        key: codesys4-deb-${{ inputs.version }}
+
+    - name: Download and verify
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        DEB_URL: ${{ inputs.deb-url }}
+        SHA256: ${{ inputs.sha256 }}
+      run: |
+        set -euo pipefail
+
+        # Built-in hashes, maintained in the action repo
+        declare -A KNOWN=( ["1.0.0.0"]="<hash computed once by the maintainer>" )
+
+        # Default URL is derived from the version when no override is given
+        url="${DEB_URL:-https://store-archive.codesys.com/ftp_download/3S/CODESYS4/2101000024/${VERSION}/codesys-4_${VERSION}_amd64.deb}"
+
+        mkdir -p ~/.cache/codesys4
+        deb=~/.cache/codesys4/codesys-4.deb
+        [ -f "$deb" ] || curl -fSL "$url" -o "$deb"
+
+        expected="${SHA256:-${KNOWN[$VERSION]:-}}"
+        actual="$(sha256sum "$deb" | cut -d' ' -f1)"
+        echo "SHA-256 of downloaded package: $actual"
+
+        if [ -n "$expected" ]; then
+          [ "$expected" = "$actual" ] || { echo "SHA-256 mismatch" >&2; exit 1; }
+        else
+          echo "::warning::No expected SHA-256 provided, integrity not verified"
+          dpkg-deb -I "$deb" >/dev/null
+        fi
+
+    - name: Install
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt-get update
+        sudo apt-get install -y ~/.cache/codesys4/codesys-4.deb
+
+    - name: Read version
+      id: ver
+      shell: bash
+      run: echo "version=$(c4-cli version)" >> "$GITHUB_OUTPUT"
