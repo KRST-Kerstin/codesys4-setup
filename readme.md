@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: KRST-Kerstin/setup-codesys4@v1
+      - uses: KRST-Kerstin/codesys4-setup@v1
 
       - name: Check installation
         run: c4-cli version
@@ -22,7 +22,7 @@ jobs:
 Pin a specific version:
 
 ```yaml
-      - uses: KRST-Kerstin/setup-codesys4@v1
+      - uses: KRST-Kerstin/codesys4-setup@v1
         with:
           version: "1.0.0.0"
 ```
@@ -62,7 +62,7 @@ jobs:
     container: debian:13
     steps:
       - run: apt-get update && apt-get install -y --no-install-recommends ca-certificates curl sudo
-      - uses: KRST-Kerstin/setup-codesys4@v1
+      - uses: KRST-Kerstin/codesys4-setup@v1
 ```
 
 ## How it works
@@ -81,7 +81,7 @@ No CODESYS binaries are stored in this repository. The package is always downloa
 If a SHA-256 is known for the selected `version` (built into the action) or passed via `sha256`, the download is verified and the step fails on a mismatch. If no expected value exists, the action only checks that the file is a valid `.deb`, prints a warning, and logs the computed SHA-256 so you can pin it:
 
 ```yaml
-      - uses: KRST-Kerstin/setup-codesys4@v1
+      - uses: KRST-Kerstin/codesys4-setup@v1
         with:
           version: "1.0.0.0"
           sha256: "<value from the log>"
