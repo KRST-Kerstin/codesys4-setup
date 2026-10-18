@@ -64,7 +64,7 @@ runs:
         set -euo pipefail
 
         # Built-in hashes, maintained in the action repo
-        declare -A KNOWN=( ["1.0.0.0"]="<hash computed once by the maintainer>" )
+        declare -A KNOWN=( ["1.0.0.0"]="8f6a614136997c9a1242db16c7a0b735359a5830e7501a14f6407322c0184118" )
 
         # Default URL is derived from the version when no override is given
         url="${DEB_URL:-https://store-archive.codesys.com/ftp_download/3S/CODESYS4/2101000024/${VERSION}/codesys-4_${VERSION}_amd64.deb}"
