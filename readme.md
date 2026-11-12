@@ -36,6 +36,7 @@ For supply-chain safety, pin the action itself to a full commit SHA instead of a
 | `version` | no | `1.0.0.0` | Version explicitly pinned by the reviewed release manifest; other versions fail. |
 | `deb-url` | no | reviewed manifest URL | Optional assertion; if set, must exactly match the reviewed manifest URL. |
 | `sha256` | no | reviewed manifest pin | Optional assertion; if set, must exactly match the reviewed manifest SHA-256. |
+| `libraries` | no | empty | Reserved for optional PLC libraries. This version supports no library IDs or versions: leave empty; a non-empty value fails before installation. There is no default library bundle, `Standard` inclusion, library download, or automatic wildcard/`latest` resolution. |
 
 
 ## Outputs

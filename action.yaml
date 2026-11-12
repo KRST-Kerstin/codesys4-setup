@@ -16,6 +16,9 @@ inputs:
   sha256:
     description: Optional assertion that must exactly match the reviewed manifest SHA-256
     default: ""
+  libraries:
+    description: Reserved optional libraries list; non-empty values are currently unsupported
+    default: ""
 
 outputs:
   version:
@@ -46,6 +49,12 @@ runs:
           echo "::error::apt-get/dpkg not found (Debian-based Linux required)."
           exit 1
         }
+
+    - name: Validate optional libraries input
+      shell: bash
+      env:
+        LIBRARY_IDS: ${{ inputs.libraries }}
+      run: python3 "${{ github.action_path }}/scripts/validate_library_input.py"
 
     - name: Validate reviewed release manifest
       shell: bash
