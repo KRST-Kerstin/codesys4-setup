@@ -93,6 +93,10 @@ Optional `deb-url` and `sha256` inputs may only repeat the exact URL and pin alr
 
 CODESYS is a product of CODESYS Group and is subject to its own license terms. By using this action you are responsible for complying with them, including terms that apply to automated downloads and to the use of CODESYS in CI. Do not publish container images or artifacts that contain CODESYS binaries to public registries unless the license allows it. The license of this repository covers the action code only.
 
+## CI smoke workflow
+
+The `.github/workflows/smoke.yml` workflow runs deterministic, offline tests on pushes and pull requests. Its CODESYS install/CLI smoke job is manual and disabled by default. Before enabling it, an operator must independently confirm that applicable CODESYS Store/EULA terms permit automated package downloads and this CI use; then manually dispatch the workflow with both `license_terms_confirmed` and `run_codesys_smoke` set to `true`. No store login or credentials are used. This check establishes only that the action installs CODESYS and `c4-cli version` runs; it does not test PLC builds, UI, or TLS. Do not dispatch the binary job until that terms check is complete.
+
 ## Troubleshooting
 
 | Symptom | Likely cause |

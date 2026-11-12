@@ -1,0 +1,40 @@
+# This smoke check proves installation and CLI availability only; it does not test PLC builds, UI, or TLS.
+name: CODESYS 4 smoke test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      license_terms_confirmed:
+        description: Confirm Store/EULA terms permit this automated download and CI use
+        required: true
+        type: boolean
+        default: false
+      run_codesys_smoke:
+        description: Opt in to installing CODESYS and running c4-cli version
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run offline static workflow and unit checks
+        run: python3 -m unittest discover -s tests -v
+
+  codesys-smoke:
+    # Keep disabled unless an operator has confirmed terms and explicitly opts in.
+    if: github.event_name == 'workflow_dispatch' && inputs.license_terms_confirmed == true && inputs.run_codesys_smoke == true
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install CODESYS and check CLI
+        uses: ./
+      - name: Check installation
+        run: c4-cli version
