@@ -76,16 +76,19 @@ jobs:
 
 No CODESYS binaries are stored in this repository. The package is always downloaded from CODESYS at run time.
 
-## Integrity check
+## Reviewed release manifest and integrity
 
-If a SHA-256 is known for the selected `version` (built into the action) or passed via `sha256`, the download is verified and the step fails on a mismatch. If no expected value exists, the action only checks that the file is a valid `.deb`, prints a warning, and logs the computed SHA-256 so you can pin it:
+The action accepts only the manually reviewed release in `releases/codesys4-linux-amd64.json`. That record binds version `1.0.0.0`, Linux `amd64`, DEB format, the exact artifact URL, SHA-256, artifact scope, provenance, and review date. The SHA-256 is a user-approved, locally computed TOFU integrity pin for those exact bytes; it is **not vendor-authenticated** and does not establish CODESYS publisher authenticity. No official checksum, stable channel, feed, or future URL is asserted.
+
+The manifest validator runs before download and installation. Missing or malformed fields, another version/platform/URL/pin, or conflicting overrides fail closed. A cached package is hashed before installation too; a mismatch cannot proceed to `apt-get install`. New releases require a separately reviewed manifest change and corresponding integrity pin; there is no Store scraping or automatic promotion.
 
 ```yaml
       - uses: KRST-Kerstin/codesys4-setup@v1
         with:
           version: "1.0.0.0"
-          sha256: "<value from the log>"
 ```
+
+Optional `deb-url` and `sha256` inputs may only repeat the exact URL and pin already approved in that manifest; they cannot add an unreviewed release.
 
 ## Licensing
 

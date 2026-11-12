@@ -47,12 +47,16 @@ runs:
           exit 1
         }
 
+    - name: Validate reviewed release manifest
+      shell: bash
+      run: python3 "${{ github.action_path }}/scripts/validate_release_manifest.py"
+
     - name: Restore .deb cache
       if: inputs.cache == 'true'
       uses: actions/cache@v4
       with:
         path: ~/.cache/codesys4
-        key: codesys4-deb-${{ inputs.version }}
+        key: codesys4-deb-${{ inputs.version }}-${{ hashFiles(format('{0}/releases/codesys4-linux-amd64.json', github.action_path)) }}
 
     - name: Download and verify
       shell: bash
@@ -63,26 +67,21 @@ runs:
       run: |
         set -euo pipefail
 
-        # Built-in hashes, maintained in the action repo
-        declare -A KNOWN=( ["1.0.0.0"]="8f6a614136997c9a1242db16c7a0b735359a5830e7501a14f6407322c0184118" )
-
-        # Default URL is derived from the version when no override is given
-        url="${DEB_URL:-https://store-archive.codesys.com/ftp_download/3S/CODESYS4/2101000024/${VERSION}/codesys-4_${VERSION}_amd64.deb}"
+        manifest="${{ github.action_path }}/releases/codesys4-linux-amd64.json"
+        manifest_version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$manifest")"
+        url="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["url"])' "$manifest")"
+        expected="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha256"])' "$manifest")"
+        [ "$VERSION" = "$manifest_version" ] || { echo "::error::Requested version is not in the reviewed release manifest"; exit 1; }
+        [ -z "$DEB_URL" ] || [ "$DEB_URL" = "$url" ] || { echo "::error::deb-url must match the reviewed manifest URL"; exit 1; }
+        [ -z "$SHA256" ] || [ "$SHA256" = "$expected" ] || { echo "::error::sha256 must match the reviewed manifest pin"; exit 1; }
 
         mkdir -p ~/.cache/codesys4
         deb=~/.cache/codesys4/codesys-4.deb
         [ -f "$deb" ] || curl -fSL "$url" -o "$deb"
 
-        expected="${SHA256:-${KNOWN[$VERSION]:-}}"
         actual="$(sha256sum "$deb" | cut -d' ' -f1)"
         echo "SHA-256 of downloaded package: $actual"
-
-        if [ -n "$expected" ]; then
-          [ "$expected" = "$actual" ] || { echo "SHA-256 mismatch" >&2; exit 1; }
-        else
-          echo "::warning::No expected SHA-256 provided, integrity not verified"
-          dpkg-deb -I "$deb" >/dev/null
-        fi
+        [ "$expected" = "$actual" ] || { echo "SHA-256 mismatch" >&2; exit 1; }
 
     - name: Install
       shell: bash
