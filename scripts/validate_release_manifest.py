@@ -13,14 +13,16 @@ EXPECTED_URL = "https://store-archive.codesys.com/ftp_download/3S/CODESYS4/21010
 EXPECTED_SHA256 = "8f6a614136997c9a1242db16c7a0b735359a5830e7501a14f6407322c0184118"
 
 
-def validate(document: Any) -> dict[str, str]:
+def validate(document: Any) -> dict[str, Any]:
     if not isinstance(document, dict):
         raise ValueError("manifest must be a JSON object")
-    required = {"version", "architecture", "package_format", "url", "sha256", "artifact_scope", "provenance", "reviewed_at"}
+    required = {"version", "architecture", "package_format", "channel", "url", "sha256", "artifact_scope", "provenance", "reviewed_at"}
     missing = required - document.keys()
     if missing:
         raise ValueError("missing required fields: " + ", ".join(sorted(missing)))
-    for key in required:
+    if document["channel"] is not None and (not isinstance(document["channel"], str) or not document["channel"].strip()):
+        raise ValueError("channel must be null when unapproved or a non-empty approved label")
+    for key in required - {"channel"}:
         if not isinstance(document[key], str) or not document[key].strip():
             raise ValueError(f"{key} must be a non-empty string")
     if document["version"] != "1.0.0.0":

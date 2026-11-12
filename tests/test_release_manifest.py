@@ -20,7 +20,7 @@ class ReleaseManifestTests(unittest.TestCase):
     def test_rejects_missing_or_malformed_required_fields(self):
         invalid_values = {
             "version": "", "architecture": "arm64", "url": "", "sha256": "not-a-hash",
-            "provenance": "", "artifact_scope": "", "reviewed_at": "bad-date",
+            "channel": "", "provenance": "", "artifact_scope": "", "reviewed_at": "bad-date",
         }
         for key, value in invalid_values.items():
             with self.subTest(field=key):

@@ -33,9 +33,9 @@ For supply-chain safety, pin the action itself to a full commit SHA instead of a
 
 | Name | Required | Default | Description |
 | --- | --- | --- | --- |
-| `version` | no | `1.0.0.0` | CODESYS 4 version to install. |
-| `deb-url` | no | derived from `version` | Override the download URL of the `.deb` package. |
-| `sha256` | no | built-in value for known versions | Expected SHA-256 of the package. Overrides the built-in value. |
+| `version` | no | `1.0.0.0` | Version explicitly pinned by the reviewed release manifest; other versions fail. |
+| `deb-url` | no | reviewed manifest URL | Optional assertion; if set, must exactly match the reviewed manifest URL. |
+| `sha256` | no | reviewed manifest pin | Optional assertion; if set, must exactly match the reviewed manifest SHA-256. |
 | `cache` | no | `true` | Cache the downloaded `.deb` between runs. |
 
 ## Outputs
@@ -100,17 +100,17 @@ CODESYS is a product of CODESYS Group and is subject to its own license terms. B
 | --- | --- |
 | `Unsupported OS` / `Unsupported architecture` | Runner is not Linux X64. |
 | `apt-get/dpkg not found` | Runner is not Debian-based (for example Alpine). |
-| `SHA-256 mismatch` | The file at the URL changed, the download was corrupted, or the built-in hash is outdated. Check the logged hash. |
-| Download fails with an HTTP error | The URL changed or the server is unavailable from the runner network. Try `deb-url`, or cache the file. |
+| `SHA-256 mismatch` | The artifact bytes do not match the reviewed local TOFU pin; the action stops before installation. |
+| Download fails with an HTTP error | The exact URL in the reviewed manifest is unavailable from the runner; `deb-url` cannot select an unreviewed source. |
 | Dependency errors during install | Package dependencies differ between distributions. Try the `debian:13` container variant. |
 
-## Maintainers: adding a new version
+## Maintainers: proposing a new version
 
-1. Download the package from the official CODESYS source.
-2. Compute its hash: `sha256sum codesys-4_<version>_amd64.deb`.
-3. Add the version and hash to the `KNOWN` table in `action.yml`.
-4. Run the test workflow on all supported runners.
-5. Tag a release and move the major tag (`v1`).
+1. Verify the exact artifact and establish the proposed SHA-256 pin and its provenance outside this repository.
+2. Do not infer a URL, channel, publisher-authenticated checksum, or release from Store HTML.
+3. Submit a manual change to the release manifest with version, platform, exact URL, SHA-256 provenance, artifact scope, and review date.
+4. Update validator rules and fixture-only tests to review the new pin; do not publish or promote automatically.
+5. Keep binary-download integration tests disabled until applicable license/Store terms are confirmed.
 
 ## License
 
