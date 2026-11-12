@@ -36,7 +36,7 @@ For supply-chain safety, pin the action itself to a full commit SHA instead of a
 | `version` | no | `1.0.0.0` | Version explicitly pinned by the reviewed release manifest; other versions fail. |
 | `deb-url` | no | reviewed manifest URL | Optional assertion; if set, must exactly match the reviewed manifest URL. |
 | `sha256` | no | reviewed manifest pin | Optional assertion; if set, must exactly match the reviewed manifest SHA-256. |
-| `cache` | no | `true` | Cache the downloaded `.deb` between runs. |
+
 
 ## Outputs
 
@@ -68,11 +68,10 @@ jobs:
 ## How it works
 
 1. Checks the runner (Linux, X64, apt/dpkg present).
-2. Restores the cached `.deb` (if `cache` is enabled).
-3. Downloads the package directly from the CODESYS download server.
-4. Verifies the SHA-256 (see below).
-5. Installs it with `apt-get install`, so package dependencies are resolved by apt.
-6. Reads the installed version with `c4-cli version`.
+2. Downloads the package directly from the URL in the reviewed manifest, or uses a local cache entry keyed by the exact version, URL, and expected SHA-256.
+3. Verifies the SHA-256 and checks the DEB archive structure before invoking apt/dpkg.
+4. Installs it with `apt-get install`, so package dependencies are resolved by apt.
+5. Reads the installed version with `c4-cli version`.
 
 No CODESYS binaries are stored in this repository. The package is always downloaded from CODESYS at run time.
 
@@ -80,7 +79,7 @@ No CODESYS binaries are stored in this repository. The package is always downloa
 
 The action accepts only the manually reviewed release in `releases/codesys4-linux-amd64.json`. That record binds version `1.0.0.0`, Linux `amd64`, DEB format, the exact artifact URL, SHA-256, artifact scope, provenance, and review date. The SHA-256 is a user-approved, locally computed TOFU integrity pin for those exact bytes; it is **not vendor-authenticated** and does not establish CODESYS publisher authenticity. No official checksum, stable channel, feed, or future URL is asserted.
 
-The manifest validator runs before download and installation. Missing or malformed fields, another version/platform/URL/pin, or conflicting overrides fail closed. A cached package is hashed before installation too; a mismatch cannot proceed to `apt-get install`. New releases require a separately reviewed manifest change and corresponding integrity pin; there is no Store scraping or automatic promotion.
+The manifest validator runs before download and installation. Missing or malformed fields, another version/platform/URL/pin, or conflicting overrides fail closed. Cache entries are keyed by the exact version, URL, and expected SHA-256; every hit is re-hashed and archive-validated before installation. A network, hash, or archive-validation failure cannot proceed to apt/dpkg. New releases require a separately reviewed manifest change and corresponding integrity pin; there is no Store scraping or automatic promotion.
 
 ```yaml
       - uses: KRST-Kerstin/codesys4-setup@v1
