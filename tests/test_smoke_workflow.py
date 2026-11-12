@@ -16,6 +16,7 @@ class SmokeWorkflowTests(unittest.TestCase):
         self.assertRegex(text, r"(?m)^  pull_request:\s*$")
         self.assertIn("validate-workflow", text)
         self.assertIn("python3 -m unittest", text)
+        self.assertEqual(text.count("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"), 2)
 
     def test_binary_smoke_is_explicitly_opt_in_and_manually_triggered(self):
         text = WORKFLOW.read_text()
