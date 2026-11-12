@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0.0",
+  "architecture": "amd64",
+  "package_format": "deb",
+  "channel": null,
+  "url": "https://store-archive.codesys.com/ftp_download/3S/CODESYS4/2101000024/1.0.0.0/codesys-4_1.0.0.0_amd64.deb",
+  "sha256": "8f6a614136997c9a1242db16c7a0b735359a5830e7501a14f6407322c0184118",
+  "artifact_scope": "CODESYS 4 Linux amd64 DEB, version 1.0.0.0, at the exact URL recorded above",
+  "provenance": "User-approved locally computed SHA-256 TOFU integrity pin; not vendor-authenticated and not evidence of CODESYS publisher authenticity.",
+  "reviewed_at": "2026-11-12"
+}
